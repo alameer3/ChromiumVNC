@@ -16,6 +16,9 @@ class BrowserManager:
     def __init__(self):
         self.driver = None
         self.display = ":1"
+        self.bookmarks = []
+        self.history = []
+        self.current_resolution = (1280, 720)
         
     def start_browser(self):
         """Start Chromium browser using Selenium"""
@@ -38,6 +41,7 @@ class BrowserManager:
             chrome_options.add_argument("--disable-background-timer-throttling")
             chrome_options.add_argument("--disable-backgrounding-occluded-windows")
             chrome_options.add_argument("--disable-renderer-backgrounding")
+            chrome_options.add_argument(f"--user-data-dir=/tmp/chrome-data-{os.getpid()}")
             
             # Try to find chromium binary
             import subprocess as sp
@@ -82,6 +86,8 @@ class BrowserManager:
             if not url.startswith(('http://', 'https://')):
                 url = 'https://' + url
             self.driver.get(url)
+            # Add to history
+            self.add_to_history(url)
             return True
         except Exception as e:
             print(f"Error navigating to {url}: {e}")
@@ -132,6 +138,51 @@ class BrowserManager:
         except Exception as e:
             print(f"Error getting current URL: {e}")
             return ""
+    
+    def add_bookmark(self):
+        """Add current page to bookmarks"""
+        try:
+            url = self.get_current_url()
+            title = self.driver.title
+            if url and url not in [b['url'] for b in self.bookmarks]:
+                bookmark = {
+                    'title': title,
+                    'url': url
+                }
+                self.bookmarks.append(bookmark)
+                print(f"Bookmark added: {title}")
+                return True
+            return False
+        except Exception as e:
+            print(f"Error adding bookmark: {e}")
+            return False
+    
+    def get_bookmarks(self):
+        """Get all bookmarks"""
+        return self.bookmarks
+    
+    def get_history(self):
+        """Get browsing history"""
+        return self.history
+    
+    def add_to_history(self, url):
+        """Add URL to history"""
+        if url and url not in self.history:
+            self.history.append(url)
+            # Keep only last 50 entries
+            if len(self.history) > 50:
+                self.history = self.history[-50:]
+    
+    def change_resolution(self, width, height):
+        """Change browser resolution"""
+        try:
+            self.current_resolution = (width, height)
+            self.driver.set_window_size(width, height)
+            print(f"Resolution changed to {width}x{height}")
+            return True
+        except Exception as e:
+            print(f"Error changing resolution: {e}")
+            return False
     
     def cleanup(self):
         """Clean up browser resources"""

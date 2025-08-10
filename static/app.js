@@ -18,18 +18,30 @@ class BrowserApp {
         this.forwardBtn = document.getElementById('forwardBtn');
         this.refreshBtn = document.getElementById('refreshBtn');
         this.newTabBtn = document.getElementById('newTabBtn');
+        this.bookmarkBtn = document.getElementById('bookmarkBtn');
+        this.historyBtn = document.getElementById('historyBtn');
+        this.settingsBtn = document.getElementById('settingsBtn');
         this.urlInput = document.getElementById('urlInput');
         this.goBtn = document.getElementById('goBtn');
         
         // Status elements
         this.connectionStatus = document.getElementById('connectionStatus');
         this.browserStatus = document.getElementById('browserStatus');
+        this.currentResolution = document.getElementById('currentResolution');
+        this.loadingProgress = document.getElementById('loadingProgress');
         
         // Overlays
         this.loadingOverlay = document.getElementById('loadingOverlay');
         this.errorOverlay = document.getElementById('errorOverlay');
         this.errorText = document.getElementById('errorText');
         this.retryBtn = document.getElementById('retryBtn');
+        
+        // Modals
+        this.settingsModal = document.getElementById('settingsModal');
+        this.bookmarksModal = document.getElementById('bookmarksModal');
+        this.historyModal = document.getElementById('historyModal');
+        this.resolutionSelect = document.getElementById('resolutionSelect');
+        this.applyResolution = document.getElementById('applyResolution');
         
         // Canvas
         this.canvas = document.getElementById('vncCanvas');
@@ -42,6 +54,11 @@ class BrowserApp {
         this.refreshBtn.addEventListener('click', () => this.sendBrowserCommand('refresh'));
         this.newTabBtn.addEventListener('click', () => this.sendBrowserCommand('new_tab'));
         
+        // Enhanced controls
+        this.bookmarkBtn.addEventListener('click', () => this.addBookmark());
+        this.historyBtn.addEventListener('click', () => this.showHistory());
+        this.settingsBtn.addEventListener('click', () => this.showSettings());
+        
         // URL input
         this.urlInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -50,6 +67,23 @@ class BrowserApp {
         });
         
         this.goBtn.addEventListener('click', () => this.navigate());
+        
+        // Settings controls
+        this.applyResolution.addEventListener('click', () => this.changeResolution());
+        
+        // Modal close buttons
+        document.getElementById('closeSettings').addEventListener('click', () => this.hideModal('settings'));
+        document.getElementById('closeBookmarks').addEventListener('click', () => this.hideModal('bookmarks'));
+        document.getElementById('closeHistory').addEventListener('click', () => this.hideModal('history'));
+        
+        // Close modals when clicking outside
+        [this.settingsModal, this.bookmarksModal, this.historyModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
         
         // Retry button
         this.retryBtn.addEventListener('click', () => {
@@ -218,6 +252,131 @@ class BrowserApp {
         this.errorOverlay.style.display = 'none';
     }
     
+    // Enhanced features methods
+    addBookmark() {
+        if (!this.connected || !this.vncClient) {
+            this.showError('Not connected to browser');
+            return;
+        }
+        
+        this.vncClient.sendMessage({
+            type: 'add_bookmark'
+        });
+    }
+    
+    showHistory() {
+        if (!this.connected || !this.vncClient) {
+            this.showError('Not connected to browser');
+            return;
+        }
+        
+        this.vncClient.sendMessage({
+            type: 'get_history'
+        });
+        this.historyModal.style.display = 'block';
+    }
+    
+    showSettings() {
+        this.settingsModal.style.display = 'block';
+    }
+    
+    hideModal(modalType) {
+        switch(modalType) {
+            case 'settings':
+                this.settingsModal.style.display = 'none';
+                break;
+            case 'bookmarks':
+                this.bookmarksModal.style.display = 'none';
+                break;
+            case 'history':
+                this.historyModal.style.display = 'none';
+                break;
+        }
+    }
+    
+    changeResolution() {
+        const newResolution = this.resolutionSelect.value;
+        if (!this.connected || !this.vncClient) {
+            this.showError('Not connected to browser');
+            return;
+        }
+        
+        this.vncClient.sendMessage({
+            type: 'change_resolution',
+            resolution: newResolution
+        });
+        
+        this.currentResolution.textContent = newResolution;
+        this.hideModal('settings');
+    }
+    
+    populateBookmarks(bookmarks) {
+        const container = document.getElementById('bookmarksList');
+        container.innerHTML = '';
+        
+        if (bookmarks.length === 0) {
+            container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No bookmarks yet</p>';
+            return;
+        }
+        
+        bookmarks.forEach(bookmark => {
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.innerHTML = `
+                <div class="list-item-title">${bookmark.title || 'Untitled'}</div>
+                <div class="list-item-url">${bookmark.url}</div>
+            `;
+            item.addEventListener('click', () => {
+                this.urlInput.value = bookmark.url;
+                this.navigate();
+                this.hideModal('bookmarks');
+            });
+            container.appendChild(item);
+        });
+    }
+    
+    populateHistory(history) {
+        const container = document.getElementById('historyList');
+        container.innerHTML = '';
+        
+        if (history.length === 0) {
+            container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No history yet</p>';
+            return;
+        }
+        
+        history.reverse().forEach(url => {
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.innerHTML = `
+                <div class="list-item-title">${this.getDomainFromUrl(url)}</div>
+                <div class="list-item-url">${url}</div>
+            `;
+            item.addEventListener('click', () => {
+                this.urlInput.value = url;
+                this.navigate();
+                this.hideModal('history');
+            });
+            container.appendChild(item);
+        });
+    }
+    
+    getDomainFromUrl(url) {
+        try {
+            return new URL(url).hostname;
+        } catch {
+            return url;
+        }
+    }
+    
+    showLoadingProgress() {
+        this.loadingProgress.style.display = 'block';
+        this.updateBrowserStatus('Loading...');
+    }
+    
+    hideLoadingProgress() {
+        this.loadingProgress.style.display = 'none';
+    }
+
     resizeCanvas() {
         const container = this.canvas.parentElement;
         const containerRect = container.getBoundingClientRect();

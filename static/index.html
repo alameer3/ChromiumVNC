@@ -24,6 +24,15 @@
                 <button id="newTabBtn" class="nav-btn" title="New Tab">
                     <i class="fas fa-plus"></i>
                 </button>
+                <button id="bookmarkBtn" class="nav-btn" title="Add Bookmark">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+                <button id="historyBtn" class="nav-btn" title="History">
+                    <i class="fas fa-history"></i>
+                </button>
+                <button id="settingsBtn" class="nav-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
             </div>
             
             <div class="address-bar">
@@ -69,11 +78,69 @@
         <div class="info-panel">
             <div class="info-item">
                 <span class="info-label">Resolution:</span>
-                <span class="info-value">1280x720</span>
+                <span id="currentResolution" class="info-value">1280x720</span>
             </div>
             <div class="info-item">
                 <span class="info-label">Status:</span>
                 <span id="browserStatus" class="info-value">Initializing...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Progress:</span>
+                <div id="loadingProgress" class="progress-bar" style="display: none;">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-cog"></i> Settings</h3>
+                    <span class="close" id="closeSettings">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <label>Screen Resolution:</label>
+                        <select id="resolutionSelect">
+                            <option value="1280x720">1280x720 (HD)</option>
+                            <option value="1920x1080">1920x1080 (Full HD)</option>
+                            <option value="1024x768">1024x768 (XGA)</option>
+                            <option value="800x600">800x600 (SVGA)</option>
+                        </select>
+                        <button id="applyResolution" class="apply-btn">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bookmarks Modal -->
+        <div id="bookmarksModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-bookmark"></i> Bookmarks</h3>
+                    <span class="close" id="closeBookmarks">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="bookmarksList" class="list-container">
+                        <!-- Bookmarks will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Modal -->
+        <div id="historyModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-history"></i> Browsing History</h3>
+                    <span class="close" id="closeHistory">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="historyList" class="list-container">
+                        <!-- History will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

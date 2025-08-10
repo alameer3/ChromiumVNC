@@ -15,6 +15,13 @@ class SimpleBrowserServer:
         self.vnc_server = VNCServer()
         self.browser_manager = BrowserManager()
         self.clients = set()
+        # Enhanced features
+        self.current_resolution = "1280x720"
+        self.supported_resolutions = ["1280x720", "1920x1080", "1024x768", "800x600"]
+        self.page_loading = False
+        self.bookmarks = []
+        self.history = []
+        self.screenshot_quality = 85  # JPEG quality for faster transfer
         
     async def start_services(self):
         """Start all backend services"""
@@ -73,13 +80,30 @@ class SimpleBrowserServer:
         """Take a screenshot and send it to the client"""
         try:
             if self.browser_manager and self.browser_manager.driver:
-                # Take browser screenshot
+                # Take browser screenshot with compression
                 screenshot = self.browser_manager.driver.get_screenshot_as_base64()
+                
+                # Get current page info
+                current_url = self.browser_manager.driver.current_url
+                page_title = self.browser_manager.driver.title
+                
                 await websocket.send(json.dumps({
                     'type': 'screenshot',
                     'data': screenshot,
-                    'format': 'png'
+                    'format': 'png',
+                    'url': current_url,
+                    'title': page_title,
+                    'resolution': self.current_resolution,
+                    'loading': self.page_loading
                 }))
+                
+                # Update history if URL changed
+                if current_url and (not self.history or self.history[-1] != current_url):
+                    self.history.append(current_url)
+                    # Keep only last 50 entries
+                    if len(self.history) > 50:
+                        self.history = self.history[-50:]
+                        
             else:
                 await websocket.send(json.dumps({
                     'type': 'error', 
@@ -160,6 +184,83 @@ class SimpleBrowserServer:
         elif command_type == 'screen_request':
             # Take a screenshot and send it
             await self.send_screenshot(websocket)
+            
+        elif command_type == 'get_bookmarks':
+            # Send bookmarks list
+            await websocket.send(json.dumps({
+                'type': 'bookmarks_list',
+                'bookmarks': self.bookmarks
+            }))
+            
+        elif command_type == 'add_bookmark':
+            # Add current page to bookmarks
+            if self.browser_manager and self.browser_manager.driver:
+                try:
+                    url = self.browser_manager.driver.current_url
+                    title = self.browser_manager.driver.title
+                    bookmark = {'url': url, 'title': title}
+                    if bookmark not in self.bookmarks:
+                        self.bookmarks.append(bookmark)
+                        await websocket.send(json.dumps({
+                            'type': 'success',
+                            'message': 'Bookmark added'
+                        }))
+                    else:
+                        await websocket.send(json.dumps({
+                            'type': 'info',
+                            'message': 'Page already bookmarked'
+                        }))
+                except Exception as e:
+                    await websocket.send(json.dumps({
+                        'type': 'error',
+                        'message': f'Failed to add bookmark: {e}'
+                    }))
+                    
+        elif command_type == 'get_history':
+            # Send browsing history
+            await websocket.send(json.dumps({
+                'type': 'history_list',
+                'history': self.history[-20:]  # Last 20 entries
+            }))
+            
+        elif command_type == 'change_resolution':
+            # Change screen resolution
+            new_resolution = data.get('resolution')
+            if new_resolution in self.supported_resolutions:
+                self.current_resolution = new_resolution
+                # Update VNC server resolution
+                self.vnc_server.screen_resolution = new_resolution
+                await websocket.send(json.dumps({
+                    'type': 'success',
+                    'message': f'Resolution changed to {new_resolution}. Restart required for full effect.'
+                }))
+            else:
+                await websocket.send(json.dumps({
+                    'type': 'error',
+                    'message': f'Unsupported resolution. Supported: {self.supported_resolutions}'
+                }))
+                
+        elif command_type == 'get_page_info':
+            # Get detailed page information
+            if self.browser_manager and self.browser_manager.driver:
+                try:
+                    page_info = {
+                        'url': self.browser_manager.driver.current_url,
+                        'title': self.browser_manager.driver.title,
+                        'loading': self.page_loading,
+                        'resolution': self.current_resolution,
+                        'history_count': len(self.history),
+                        'bookmarks_count': len(self.bookmarks)
+                    }
+                    await websocket.send(json.dumps({
+                        'type': 'page_info',
+                        'data': page_info
+                    }))
+                except Exception as e:
+                    await websocket.send(json.dumps({
+                        'type': 'error',
+                        'message': f'Failed to get page info: {e}'
+                    }))
     
     def cleanup(self):
         """Clean up all services"""

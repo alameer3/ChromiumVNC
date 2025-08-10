@@ -268,3 +268,152 @@ body {
         padding: 8px 10px;
     }
 }
+
+/* Modal Styles for Enhanced Features */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    margin: 10% auto;
+    padding: 0;
+    border: 1px solid #444;
+    border-radius: 8px;
+    width: 70%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: white;
+}
+
+.close {
+    color: white;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.setting-group select {
+    width: 200px;
+    padding: 8px 12px;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: white;
+    margin-right: 10px;
+}
+
+.apply-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.apply-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Progress Bar */
+.progress-bar {
+    width: 120px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    width: 0%;
+    transition: width 0.3s ease;
+    animation: progress-animation 2s infinite;
+}
+
+@keyframes progress-animation {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+/* List Container */
+.list-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.list-item {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.list-item:hover {
+    background: #333;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item-title {
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.list-item-url {
+    font-size: 12px;
+    color: #999;
+    word-break: break-all;
+}

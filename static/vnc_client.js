@@ -73,9 +73,38 @@ class VNCClient {
                     break;
                 case 'screenshot':
                     this.displayScreenshot(message.data);
+                    // Update page info if available
+                    if (message.url && window.app) {
+                        window.app.urlInput.value = message.url;
+                        if (message.loading) {
+                            window.app.showLoadingProgress();
+                        } else {
+                            window.app.hideLoadingProgress();
+                        }
+                    }
+                    break;
+                case 'bookmarks_list':
+                    if (window.app) {
+                        window.app.populateBookmarks(message.bookmarks);
+                        window.app.bookmarksModal.style.display = 'block';
+                    }
+                    break;
+                case 'history_list':
+                    if (window.app) {
+                        window.app.populateHistory(message.history);
+                    }
                     break;
                 case 'success':
                     console.log('Command success:', message.message);
+                    if (message.message.includes('Bookmark added') && window.app) {
+                        window.app.updateBrowserStatus('Bookmark added successfully');
+                    }
+                    break;
+                case 'info':
+                    console.log('Info:', message.message);
+                    if (window.app) {
+                        window.app.updateBrowserStatus(message.message);
+                    }
                     break;
                 case 'error':
                     console.error('Server error:', message.message);
