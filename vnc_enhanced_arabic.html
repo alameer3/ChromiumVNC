@@ -291,7 +291,7 @@
     
     <div class="vnc-container">
         <iframe 
-            src="/noVNC/vnc_lite.html?host=localhost&port=6080&autoconnect=true&resize=scale&view_only=false&shared=true&reconnect=true&reconnect_delay=3000&logging=warn&path=websockify" 
+            src="http://localhost:6080/noVNC/vnc_lite.html?host=localhost&port=6080&autoconnect=true&resize=scale&view_only=false&shared=true&reconnect=true&reconnect_delay=3000&logging=warn" 
             title="noVNC Enhanced Arabic Interface"
             allowfullscreen>
         </iframe>
@@ -394,11 +394,11 @@
         }
         
         function openNoVNCFull() {
-            window.open('/noVNC/vnc.html?host=localhost&port=6080&autoconnect=true&resize=scale&path=websockify', '_blank');
+            window.open('http://localhost:6080/noVNC/vnc.html?host=localhost&port=6080&autoconnect=true&resize=scale', '_blank');
         }
         
         function openNoVNCLite() {
-            window.open('/noVNC/vnc_lite.html?host=localhost&port=6080&autoconnect=true&resize=scale&path=websockify', '_blank');
+            window.open('http://localhost:6080/noVNC/vnc_lite.html?host=localhost&port=6080&autoconnect=true&resize=scale', '_blank');
         }
         
         function togglePerfMonitor() {

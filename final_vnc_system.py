@@ -110,19 +110,22 @@ class FinalVNCSystem:
         def run_websockify():
             cmd = [
                 "/home/runner/workspace/.pythonlibs/bin/websockify",
+                "--web", ".",  # تقديم الملفات من المجلد الحالي
                 "6080",
                 "localhost:5900"
             ]
             
-            proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.processes.append(proc)
             
-            time.sleep(2)
+            time.sleep(3)
             
             if proc.poll() is None:
-                logging.info("✅ websockify نشط على 6080")
+                logging.info("✅ websockify نشط على 6080 مع خدمة الملفات")
             else:
-                logging.error("❌ websockify فشل")
+                stdout, stderr = proc.communicate()
+                logging.error(f"❌ websockify فشل: {stderr}")
+                logging.info(f"stdout: {stdout}")
         
         thread = threading.Thread(target=run_websockify, daemon=True)
         thread.start()

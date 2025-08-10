@@ -7,5 +7,10 @@
   "shared": true,
   "reconnect": true,
   "reconnect_delay": 3000,
-  "path": "websockify"
+  "path": "websockify",
+  "encrypt": false,
+  "cursor": true,
+  "quality": 6,
+  "compression": 2,
+  "logging": "info"
 }
