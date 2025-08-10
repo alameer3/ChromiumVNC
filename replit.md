@@ -27,6 +27,14 @@ Preferred communication style: Simple, everyday language.
 - Updated WebSocket communication to support tab operations
 - Improved UI with modern tab design and responsive controls
 
+### Bug Fixes and Architecture Improvements (Latest)
+- Fixed JavaScript null reference errors by creating safe app version (app_safe.js)
+- Added comprehensive error handling for missing DOM elements
+- Improved connection status management and control enabling
+- VNC server runs internally on port 5900 - no external port needed (Replit handles this automatically)
+- WebSocket communication on port 8000 for browser control
+- Added status bar and loading indicators for better UX
+
 ## Suggested Future Enhancements
 
 ### Performance & User Experience

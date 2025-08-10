@@ -160,6 +160,7 @@ class SafeBrowserApp {
     }
     
     handleConnectionChange(status) {
+        console.log('Connection status changed to:', status);
         this.connected = (status === 'connected');
         this.updateConnectionStatus(status);
         
@@ -168,7 +169,8 @@ class SafeBrowserApp {
                 this.hideLoading();
                 this.hideError();
                 this.updateBrowserStatus('Browser ready');
-                this.enableControls(true);
+                // Don't enable controls immediately - wait for server confirmation
+                setTimeout(() => this.enableControls(true), 1000);
                 break;
                 
             case 'disconnected':
@@ -324,11 +326,26 @@ class SafeBrowserApp {
     }
     
     enableControls(enabled) {
-        if (this.backBtn) this.backBtn.disabled = !enabled;
-        if (this.forwardBtn) this.forwardBtn.disabled = !enabled;
-        if (this.refreshBtn) this.refreshBtn.disabled = !enabled;
-        if (this.urlInput) this.urlInput.disabled = !enabled;
-        if (this.goBtn) this.goBtn.disabled = !enabled;
+        console.log('Setting controls enabled:', enabled);
+        try {
+            if (this.backBtn && typeof this.backBtn.disabled !== 'undefined') {
+                this.backBtn.disabled = !enabled;
+            }
+            if (this.forwardBtn && typeof this.forwardBtn.disabled !== 'undefined') {
+                this.forwardBtn.disabled = !enabled;
+            }
+            if (this.refreshBtn && typeof this.refreshBtn.disabled !== 'undefined') {
+                this.refreshBtn.disabled = !enabled;
+            }
+            if (this.urlInput && typeof this.urlInput.disabled !== 'undefined') {
+                this.urlInput.disabled = !enabled;
+            }
+            if (this.goBtn && typeof this.goBtn.disabled !== 'undefined') {
+                this.goBtn.disabled = !enabled;
+            }
+        } catch (error) {
+            console.error('Error setting controls:', error);
+        }
     }
     
     showLoading() {
@@ -384,13 +401,29 @@ class SafeBrowserApp {
     }
 }
 
+// Clear any existing app
+if (window.app) {
+    window.app = null;
+}
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing SafeBrowserApp');
-    window.app = new SafeBrowserApp();
+    console.log('DOM loaded, initializing SafeBrowserApp v2');
     
-    // Initial canvas resize
+    // Wait a moment for DOM to be fully ready
     setTimeout(() => {
-        if (window.app) window.app.resizeCanvas();
+        try {
+            window.app = new SafeBrowserApp();
+            console.log('SafeBrowserApp initialized successfully');
+            
+            // Initial canvas resize
+            setTimeout(() => {
+                if (window.app && window.app.resizeCanvas) {
+                    window.app.resizeCanvas();
+                }
+            }, 500);
+        } catch (error) {
+            console.error('Error initializing SafeBrowserApp:', error);
+        }
     }, 100);
 });
