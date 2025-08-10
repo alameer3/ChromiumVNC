@@ -52,7 +52,12 @@ class BrowserApp {
         this.backBtn.addEventListener('click', () => this.sendBrowserCommand('back'));
         this.forwardBtn.addEventListener('click', () => this.sendBrowserCommand('forward'));
         this.refreshBtn.addEventListener('click', () => this.sendBrowserCommand('refresh'));
-        this.newTabBtn.addEventListener('click', () => this.sendBrowserCommand('new_tab'));
+        
+        // Tab controls
+        document.getElementById('newTabBarBtn').addEventListener('click', () => this.createNewTab());
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
         
         // Enhanced controls
         this.bookmarkBtn.addEventListener('click', () => this.addBookmark());
@@ -123,8 +128,157 @@ class BrowserApp {
         
         // Render test pattern initially
         this.vncClient.renderTestPattern();
+        
+        // Initialize tabs
+        this.tabs = new Map();
+        this.activeTabId = 0;
+        this.nextTabId = 1;
     }
     
+    handleKeyboardShortcuts(e) {
+        // Prevent shortcuts when typing in input fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        // Check for browser shortcuts
+        if (e.ctrlKey || e.metaKey) {
+            switch (e.key) {
+                case 't':
+                    e.preventDefault();
+                    this.createNewTab();
+                    break;
+                case 'w':
+                    e.preventDefault();
+                    this.closeCurrentTab();
+                    break;
+                case 'r':
+                    e.preventDefault();
+                    this.sendBrowserCommand('refresh');
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    this.addBookmark();
+                    break;
+                case 'h':
+                    e.preventDefault();
+                    this.showHistory();
+                    break;
+                case 'l':
+                    e.preventDefault();
+                    this.urlInput.focus();
+                    this.urlInput.select();
+                    break;
+            }
+        } else if (e.altKey) {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.sendBrowserCommand('back');
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.sendBrowserCommand('forward');
+                    break;
+            }
+        }
+        
+        // Tab switching with Ctrl+Number
+        if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') {
+            e.preventDefault();
+            const tabIndex = parseInt(e.key) - 1;
+            this.switchToTabByIndex(tabIndex);
+        }
+    }
+    
+    createNewTab() {
+        this.sendMessage({
+            type: 'browser_command',
+            command: 'new_tab'
+        });
+    }
+    
+    closeCurrentTab() {
+        if (this.tabs.size <= 1) return; // Don't close the last tab
+        
+        this.sendMessage({
+            type: 'browser_command',
+            command: 'close_tab',
+            tab_id: this.activeTabId
+        });
+    }
+    
+    switchToTab(tabId) {
+        this.sendMessage({
+            type: 'browser_command',
+            command: 'switch_tab',
+            tab_id: tabId
+        });
+    }
+    
+    switchToTabByIndex(index) {
+        const tabIds = Array.from(this.tabs.keys()).sort((a, b) => a - b);
+        if (index < tabIds.length) {
+            this.switchToTab(tabIds[index]);
+        }
+    }
+    
+    updateTabsUI(tabsInfo) {
+        const tabBar = document.getElementById('tabBar');
+        const newTabBtn = document.getElementById('newTabBarBtn');
+        
+        // Clear existing tabs except the new tab button
+        const existingTabs = tabBar.querySelectorAll('.tab');
+        existingTabs.forEach(tab => tab.remove());
+        
+        // Create tabs
+        tabsInfo.forEach(tabInfo => {
+            const tabElement = this.createTabElement(tabInfo);
+            tabBar.insertBefore(tabElement, newTabBtn);
+        });
+        
+        // Update tabs map
+        this.tabs.clear();
+        tabsInfo.forEach(tab => this.tabs.set(tab.id, tab));
+    }
+    
+    createTabElement(tabInfo) {
+        const tab = document.createElement('div');
+        tab.className = `tab ${tabInfo.id === this.activeTabId ? 'active' : ''}`;
+        tab.id = `tab-${tabInfo.id}`;
+        tab.dataset.tabId = tabInfo.id;
+        
+        tab.innerHTML = `
+            <span class="tab-title">${this.truncateTitle(tabInfo.title)}</span>
+            <button class="tab-close" onclick="window.app && window.app.closeTab(${tabInfo.id})">×</button>
+        `;
+        
+        tab.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tab-close')) {
+                this.switchToTab(tabInfo.id);
+            }
+        });
+        
+        return tab;
+    }
+    
+    truncateTitle(title) {
+        return title.length > 20 ? title.substring(0, 20) + '...' : title;
+    }
+    
+    closeTab(tabId) {
+        this.sendMessage({
+            type: 'browser_command',
+            command: 'close_tab',
+            tab_id: tabId
+        });
+    }
+    
+    sendMessage(message) {
+        if (this.vncClient && this.vncClient.connected) {
+            this.vncClient.sendMessage(message);
+        }
+    }
     handleConnectionChange(status) {
         this.connected = (status === 'connected');
         this.updateConnectionStatus(status);
@@ -398,11 +552,11 @@ class BrowserApp {
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const app = new BrowserApp();
+    window.app = new BrowserApp();
     
     // Initial canvas resize
     setTimeout(() => {
-        app.resizeCanvas();
+        window.app.resizeCanvas();
     }, 100);
 });
 

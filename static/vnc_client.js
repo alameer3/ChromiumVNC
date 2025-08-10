@@ -100,6 +100,12 @@ class VNCClient {
                         window.app.populateHistory(message.history);
                     }
                     break;
+                case 'tabs_updated':
+                    if (window.app) {
+                        window.app.updateTabsUI(message.tabs);
+                        window.app.activeTabId = message.active_tab;
+                    }
+                    break;
                 case 'success':
                     console.log('Command success:', message.message);
                     if (message.message.includes('Bookmark added') && window.app) {

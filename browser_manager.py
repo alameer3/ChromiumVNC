@@ -19,6 +19,9 @@ class BrowserManager:
         self.bookmarks = []
         self.history = []
         self.current_resolution = (1280, 720)
+        self.tabs = {}  # Store tab information
+        self.active_tab_id = 0
+        self.next_tab_id = 1
         
     def start_browser(self):
         """Start Chromium browser using Selenium"""
@@ -73,6 +76,14 @@ class BrowserManager:
             # Navigate to a default page
             self.driver.get("https://www.google.com")
             
+            # Initialize first tab
+            self.tabs[0] = {
+                'id': 0,
+                'title': 'Google',
+                'url': 'https://www.google.com',
+                'window_handle': self.driver.current_window_handle
+            }
+            
             print("Chromium browser started successfully")
             return True
             
@@ -88,6 +99,8 @@ class BrowserManager:
             self.driver.get(url)
             # Add to history
             self.add_to_history(url)
+            # Update current tab info
+            self.update_current_tab_info()
             return True
         except Exception as e:
             print(f"Error navigating to {url}: {e}")
@@ -120,16 +133,98 @@ class BrowserManager:
             print(f"Error refreshing: {e}")
             return False
     
-    def new_tab(self):
+    def new_tab(self, url="about:blank"):
         """Open a new tab"""
         try:
-            self.driver.execute_script("window.open('about:blank','_blank');")
+            self.driver.execute_script(f"window.open('{url}','_blank');")
             # Switch to the new tab
             self.driver.switch_to.window(self.driver.window_handles[-1])
-            return True
+            
+            # Add tab to our tracking
+            tab_id = self.next_tab_id
+            self.tabs[tab_id] = {
+                'id': tab_id,
+                'title': 'New Tab',
+                'url': url,
+                'window_handle': self.driver.current_window_handle
+            }
+            self.active_tab_id = tab_id
+            self.next_tab_id += 1
+            
+            print(f"New tab opened with ID: {tab_id}")
+            return tab_id
         except Exception as e:
             print(f"Error opening new tab: {e}")
             return False
+    
+    def switch_to_tab(self, tab_id):
+        """Switch to a specific tab"""
+        try:
+            if tab_id in self.tabs:
+                self.driver.switch_to.window(self.tabs[tab_id]['window_handle'])
+                self.active_tab_id = tab_id
+                print(f"Switched to tab {tab_id}")
+                return True
+            return False
+        except Exception as e:
+            print(f"Error switching to tab {tab_id}: {e}")
+            return False
+    
+    def close_tab(self, tab_id):
+        """Close a specific tab"""
+        try:
+            if tab_id in self.tabs and len(self.tabs) > 1:
+                # Switch to the tab first
+                self.driver.switch_to.window(self.tabs[tab_id]['window_handle'])
+                self.driver.close()
+                
+                # Remove from our tracking
+                del self.tabs[tab_id]
+                
+                # Switch to another tab
+                if self.active_tab_id == tab_id:
+                    # Switch to the first available tab
+                    new_active_id = list(self.tabs.keys())[0]
+                    self.switch_to_tab(new_active_id)
+                
+                print(f"Tab {tab_id} closed")
+                return True
+            return False
+        except Exception as e:
+            print(f"Error closing tab {tab_id}: {e}")
+            return False
+    
+    def get_tabs_info(self):
+        """Get information about all tabs"""
+        try:
+            current_handle = self.driver.current_window_handle
+            tabs_info = []
+            
+            for tab_id, tab_data in self.tabs.items():
+                try:
+                    self.driver.switch_to.window(tab_data['window_handle'])
+                    tab_data['title'] = self.driver.title or 'Untitled'
+                    tab_data['url'] = self.driver.current_url
+                    tabs_info.append(tab_data.copy())
+                except:
+                    # Tab might be closed
+                    continue
+            
+            # Switch back to original tab
+            self.driver.switch_to.window(current_handle)
+            return tabs_info
+        except Exception as e:
+            print(f"Error getting tabs info: {e}")
+            return []
+    
+    def update_current_tab_info(self):
+        """Update current tab information"""
+        try:
+            if self.active_tab_id in self.tabs:
+                self.tabs[self.active_tab_id]['title'] = self.driver.title or 'Untitled'
+                self.tabs[self.active_tab_id]['url'] = self.driver.current_url
+        except Exception as e:
+            print(f"Error updating tab info: {e}")
     
     def get_current_url(self):
         """Get current URL"""

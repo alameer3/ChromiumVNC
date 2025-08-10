@@ -56,6 +56,14 @@ class SimpleBrowserServer:
                 'message': 'Connected to browser'
             }))
             
+            # Send initial tabs info
+            tabs_info = self.browser_manager.get_tabs_info()
+            await websocket.send(json.dumps({
+                'type': 'tabs_updated',
+                'tabs': tabs_info,
+                'active_tab': self.browser_manager.active_tab_id
+            }))
+            
             # Handle messages
             async for message in websocket:
                 try:
@@ -158,13 +166,51 @@ class SimpleBrowserServer:
                     await asyncio.sleep(2)
                     await self.send_screenshot(websocket)
                 elif command == 'new_tab':
-                    self.browser_manager.new_tab()
-                    await websocket.send(json.dumps({
-                        'type': 'success',
-                        'message': 'Opening new tab'
-                    }))
-                    await asyncio.sleep(1)
-                    await self.send_screenshot(websocket)
+                    tab_id = self.browser_manager.new_tab()
+                    if tab_id:
+                        await websocket.send(json.dumps({
+                            'type': 'success',
+                            'message': f'New tab opened with ID: {tab_id}'
+                        }))
+                        # Send updated tabs info
+                        tabs_info = self.browser_manager.get_tabs_info()
+                        await websocket.send(json.dumps({
+                            'type': 'tabs_updated',
+                            'tabs': tabs_info,
+                            'active_tab': self.browser_manager.active_tab_id
+                        }))
+                        await asyncio.sleep(1)
+                        await self.send_screenshot(websocket)
+                elif command == 'close_tab':
+                    tab_id = data.get('tab_id')
+                    if self.browser_manager.close_tab(tab_id):
+                        await websocket.send(json.dumps({
+                            'type': 'success',
+                            'message': f'Tab {tab_id} closed'
+                        }))
+                        # Send updated tabs info
+                        tabs_info = self.browser_manager.get_tabs_info()
+                        await websocket.send(json.dumps({
+                            'type': 'tabs_updated',
+                            'tabs': tabs_info,
+                            'active_tab': self.browser_manager.active_tab_id
+                        }))
+                        await self.send_screenshot(websocket)
+                elif command == 'switch_tab':
+                    tab_id = data.get('tab_id')
+                    if self.browser_manager.switch_to_tab(tab_id):
+                        await websocket.send(json.dumps({
+                            'type': 'success',
+                            'message': f'Switched to tab {tab_id}'
+                        }))
+                        # Send updated tabs info
+                        tabs_info = self.browser_manager.get_tabs_info()
+                        await websocket.send(json.dumps({
+                            'type': 'tabs_updated',
+                            'tabs': tabs_info,
+                            'active_tab': self.browser_manager.active_tab_id
+                        }))
+                        await self.send_screenshot(websocket)
                 else:
                     await websocket.send(json.dumps({
                         'type': 'error',
