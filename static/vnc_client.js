@@ -136,7 +136,6 @@ class VNCClient {
     }
     
     displayScreenshot(base64Data) {
-        // Display the screenshot on canvas
         try {
             if (!base64Data) return;
             
@@ -145,6 +144,12 @@ class VNCClient {
                 // Clear canvas and draw image
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+                console.log('Screenshot displayed successfully');
+            };
+            
+            img.onerror = () => {
+                console.error('Failed to load screenshot image');
+                this.renderTestPattern();
             };
             
             // Set image source - handle both direct base64 and data URLs
@@ -154,27 +159,9 @@ class VNCClient {
                 img.src = `data:image/png;base64,${base64Data}`;
             }
             
-            // Request screen capture for visual update
-            this.requestScreenCapture();
-        } catch (error) {
-            console.warn('VNC data not in expected format, requesting screenshot instead');
-            this.requestScreenCapture();
-        }
-    }
-    
-    displayScreenshot(base64Data) {
-        try {
-            const img = new Image();
-            img.onload = () => {
-                // Clear canvas
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                // Draw the screenshot to fill the canvas
-                this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-            };
-            img.src = 'data:image/png;base64,' + base64Data;
         } catch (error) {
             console.error('Error displaying screenshot:', error);
+            this.renderTestPattern();
         }
     }
 

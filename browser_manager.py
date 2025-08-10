@@ -36,6 +36,7 @@ class BrowserManager:
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--window-size=1280,720")
             chrome_options.add_argument("--start-maximized")
+            chrome_options.add_argument("--force-device-scale-factor=1")
             chrome_options.add_argument("--disable-web-security")
             chrome_options.add_argument("--disable-features=VizDisplayCompositor")
             chrome_options.add_argument("--remote-debugging-port=9222")
@@ -72,6 +73,12 @@ class BrowserManager:
             
             # Start Chrome driver
             self.driver = webdriver.Chrome(options=chrome_options)
+            
+            # Navigate to a default page to ensure content is visible
+            self.driver.get("https://www.example.com")
+            
+            # Wait a moment for page to load
+            time.sleep(3)
             
             # Navigate to a default page
             self.driver.get("https://www.google.com")

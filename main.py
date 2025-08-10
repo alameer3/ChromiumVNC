@@ -166,6 +166,12 @@ class VNCWebSocketHandler:
             
         except Exception as e:
             print(f"Error capturing screenshot: {e}")
+            # Try to navigate to a default page if browser is not showing anything
+            try:
+                if hasattr(self, 'browser_manager') and self.browser_manager:
+                    self.browser_manager.navigate_to("https://www.example.com")
+            except:
+                pass
             return self.create_test_pattern()
     
     def create_test_pattern(self):
@@ -224,13 +230,18 @@ async def main():
         print("Failed to start services")
         return
     
-    # Start HTTP server for static files
-    http_server = HTTPServer(("0.0.0.0", 5000), HTTPRequestHandler)
-    http_thread = threading.Thread(target=http_server.serve_forever)
-    http_thread.daemon = True
-    http_thread.start()
-    
-    print("HTTP server started on http://0.0.0.0:5000")
+    # Start HTTP server for static files (with error handling)
+    try:
+        http_server = HTTPServer(("0.0.0.0", 5000), HTTPRequestHandler)
+        http_thread = threading.Thread(target=http_server.serve_forever)
+        http_thread.daemon = True
+        http_thread.start()
+        print("HTTP server started on http://0.0.0.0:5000")
+    except OSError as e:
+        if e.errno == 98:  # Address already in use
+            print("Port 5000 already in use - continuing with existing server")
+        else:
+            raise e
     
     # Start WebSocket server
     print("Starting WebSocket server on ws://0.0.0.0:8000/ws")
