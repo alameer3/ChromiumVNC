@@ -16,28 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "VNC Chromium"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "VNC Enhanced"
+args = "VNC Final"
 
 [[workflows.workflow]]
-name = "VNC Chromium"
+name = "VNC Final"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python vnc_launcher.py"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "VNC Enhanced"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python fixed_vnc_launcher.py"
+args = "python final_vnc_system.py"
 waitForPort = 5000
 
 [workflows.workflow.metadata]

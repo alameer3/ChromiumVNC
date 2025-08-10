@@ -140,25 +140,50 @@ class FixedVNCLauncher:
         
         cmd = [
             "/home/runner/workspace/.pythonlibs/bin/websockify",
-            "6080",  # منفذ WebSocket
+            "--web", ".",  # تقديم الملفات الثابتة
+            "--daemon",    # تشغيل في الخلفية
+            "6080",        # منفذ WebSocket
             "localhost:5900"  # عنوان VNC
         ]
         
+        # تشغيل websockify مع خيارات محسنة
         self.websockify_process = subprocess.Popen(
             cmd, 
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+            text=True
         )
         
-        time.sleep(2)
+        time.sleep(3)
         
         # التحقق من أن websockify يعمل
         if self.websockify_process.poll() is None:
             logging.info("✅ websockify يعمل على المنفذ 6080")
             return True
         else:
-            logging.error("❌ فشل في تشغيل websockify")
-            return False
+            # محاولة إعادة التشغيل بدون daemon
+            logging.warning("⚠️ محاولة تشغيل websockify بدون daemon...")
+            cmd_simple = [
+                "/home/runner/workspace/.pythonlibs/bin/websockify",
+                "--web", ".",
+                "6080",
+                "localhost:5900"
+            ]
+            
+            self.websockify_process = subprocess.Popen(
+                cmd_simple, 
+                stdout=subprocess.DEVNULL, 
+                stderr=subprocess.DEVNULL
+            )
+            
+            time.sleep(2)
+            
+            if self.websockify_process.poll() is None:
+                logging.info("✅ websockify يعمل على المنفذ 6080 (وضع بسيط)")
+                return True
+            else:
+                logging.error("❌ فشل في تشغيل websockify")
+                return False
     
     def fix_novnc_config(self):
         """إصلاح تكوين noVNC للعمل مع websockify"""
