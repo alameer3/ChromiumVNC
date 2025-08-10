@@ -4,6 +4,7 @@ Main server for web-based Chromium browser with VNC access
 """
 import asyncio
 import websockets
+import websockets.server
 import json
 import subprocess
 import os
@@ -12,7 +13,6 @@ import time
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import socketserver
-import websockets.server
 from vnc_server import VNCServer
 from browser_manager import BrowserManager
 
@@ -146,12 +146,23 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
         # Suppress HTTP logs
         pass
 
+# Global handler instance  
+global_handler = None
+
+async def websocket_handler(websocket, path):
+    """Global WebSocket handler function"""
+    global global_handler
+    if global_handler:
+        await global_handler.handle_client(websocket, path)
+
 async def main():
-    # Create VNC WebSocket handler
-    handler = VNCWebSocketHandler()
+    global global_handler
+    
+    # Create VNC WebSocket handler instance for services
+    global_handler = VNCWebSocketHandler()
     
     # Start services
-    if not await handler.start_services():
+    if not await global_handler.start_services():
         print("Failed to start services")
         return
     
@@ -167,13 +178,14 @@ async def main():
     print("Starting WebSocket server on ws://0.0.0.0:8000/ws")
     
     try:
-        async with websockets.serve(handler.handle_client, "0.0.0.0", 8000):
+        async with websockets.serve(websocket_handler, "0.0.0.0", 8000):
             print("VNC WebSocket server running...")
             await asyncio.Future()  # Run forever
     except KeyboardInterrupt:
         print("Shutting down...")
     finally:
-        handler.cleanup()
+        if global_handler:
+            global_handler.cleanup()
         http_server.shutdown()
 
 if __name__ == "__main__":
