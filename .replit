@@ -37,7 +37,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python vnc_optimized_launcher.py"
+args = "python fixed_vnc_launcher.py"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
