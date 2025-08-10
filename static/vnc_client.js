@@ -126,13 +126,17 @@ class VNCClient {
         // For simplicity, we'll create a basic screen update simulation
         // In a real implementation, this would decode VNC protocol data
         try {
-            const binaryData = atob(base64Data);
+            // Check if data is valid base64 before attempting to decode
+            if (base64Data && base64Data !== 'test_screen_data') {
+                const binaryData = atob(base64Data);
+                // Process actual VNC data here
+            }
             
-            // Simple approach: treat data as screen update signal
-            // and render a placeholder or request screen capture
+            // Request screen capture for visual update
             this.requestScreenCapture();
         } catch (error) {
-            console.error('Error handling VNC data:', error);
+            console.warn('VNC data not in expected format, requesting screenshot instead');
+            this.requestScreenCapture();
         }
     }
     

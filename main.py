@@ -46,7 +46,7 @@ class VNCWebSocketHandler:
     async def handle_client(self, websocket, path):
         """Handle WebSocket client connections"""
         # Check if this is a WebSocket connection from our VNC client  
-        if path != "/ws":
+        if path != "/ws" and path != "/":
             return
             
         self.clients.add(websocket)
@@ -149,11 +149,11 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
 # Global handler instance  
 global_handler = None
 
-async def websocket_handler(websocket, path):
+async def websocket_handler(websocket):
     """Global WebSocket handler function"""
     global global_handler
     if global_handler:
-        await global_handler.handle_client(websocket, path)
+        await global_handler.handle_client(websocket, websocket.request.path)
 
 async def main():
     global global_handler

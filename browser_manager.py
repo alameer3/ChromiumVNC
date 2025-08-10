@@ -41,7 +41,7 @@ class BrowserManager:
             chrome_options.add_argument("--disable-background-timer-throttling")
             chrome_options.add_argument("--disable-backgrounding-occluded-windows")
             chrome_options.add_argument("--disable-renderer-backgrounding")
-            chrome_options.add_argument(f"--user-data-dir=/tmp/chrome-data-{os.getpid()}")
+            chrome_options.add_argument(f"--user-data-dir=/tmp/chrome-data-{os.getpid()}-{int(time.time())}")
             
             # Try to find chromium binary
             import subprocess as sp
