@@ -81,6 +81,6 @@ The backend follows a modular Python architecture with three main components:
 
 ### Network Configuration
 - WebSocket server on port 8000
-- VNC server on port 5901
+- VNC server on port 5900 (standard VNC port)
 - HTTP server for static file serving
 - Chrome remote debugging on port 9222

@@ -12,7 +12,7 @@ class VNCServer:
         self.xvfb_process = None
         self.vnc_process = None
         self.display = ":1"
-        self.vnc_port = 5901
+        self.vnc_port = 5900
         self.screen_resolution = "1280x720"
         
     def start_xvfb(self):
