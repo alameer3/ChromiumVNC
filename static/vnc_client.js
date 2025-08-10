@@ -30,6 +30,10 @@ class VNCClient {
             console.log('WebSocket connected');
             this.connected = true;
             this.onConnectionChange('connected');
+            // Start periodic screenshots to show browser content
+            this.startPeriodicScreenshots();
+            // Request initial screenshot
+            setTimeout(() => this.requestScreenCapture(), 1000);
         };
         
         this.websocket.onmessage = (event) => {
@@ -39,6 +43,7 @@ class VNCClient {
         this.websocket.onclose = () => {
             console.log('WebSocket disconnected');
             this.connected = false;
+            this.stopPeriodicScreenshots();
             this.onConnectionChange('disconnected');
             
             // Auto-reconnect after 3 seconds
@@ -56,6 +61,7 @@ class VNCClient {
     }
     
     disconnect() {
+        this.stopPeriodicScreenshots();
         if (this.websocket) {
             this.websocket.close();
             this.websocket = null;
@@ -162,6 +168,26 @@ class VNCClient {
             this.sendMessage({
                 type: 'screen_request'
             });
+        }
+    }
+    
+    startPeriodicScreenshots() {
+        // Request screenshots every 2 seconds to keep display updated
+        if (this.screenshotInterval) {
+            clearInterval(this.screenshotInterval);
+        }
+        
+        this.screenshotInterval = setInterval(() => {
+            if (this.connected) {
+                this.requestScreenCapture();
+            }
+        }, 2000);
+    }
+    
+    stopPeriodicScreenshots() {
+        if (this.screenshotInterval) {
+            clearInterval(this.screenshotInterval);
+            this.screenshotInterval = null;
         }
     }
     
