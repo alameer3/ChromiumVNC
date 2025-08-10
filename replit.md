@@ -24,23 +24,30 @@ This project provides a remote desktop solution using VNC to access a Chromium b
 - **Process Management**: Python launcher with graceful cleanup and signal handling
 
 ### Core Components
-1. **vnc_launcher.py**: Main system launcher with Arabic interface
-2. **noVNC/**: Complete noVNC client library
-3. **vnc_arabic.html**: Custom Arabic interface for VNC access
+1. **vnc_launcher.py**: Original system launcher with Arabic interface
+2. **vnc_optimized_launcher.py**: Enhanced launcher with full noVNC features
+3. **noVNC/**: Complete noVNC v1.6.0 client library with optimized configuration
+4. **vnc_arabic.html**: Original Arabic interface for VNC access
+5. **vnc_enhanced_arabic.html**: Advanced Arabic interface with performance monitoring
+6. **websocket_proxy.py**: WebSocket proxy for optimized performance
 
 ## Current Status (August 10, 2025)
 
 ### Working Services
-- ✅ Xvfb virtual display on :1 (1280x720x24)
-- ✅ x11vnc server on port 5900
-- ✅ Chromium browser with Google.com loaded
+- ✅ Xvfb virtual display on :1 (1920x1080x24) - Enhanced Resolution
+- ✅ x11vnc server on port 5900 with SSL encryption
+- ✅ Optimized Chromium browser with Google.com (Arabic)
 - ✅ HTTP server on port 5000
-- ✅ Arabic web interface with RTL support
+- ✅ Enhanced Arabic web interface with RTL support
+- ✅ WebSocket proxy on port 6080 for performance
+- ✅ Complete noVNC v1.6.0 integration
 
 ### URLs
+- **Enhanced Arabic Interface**: http://localhost:5000/vnc_enhanced_arabic.html
 - **Main Interface**: http://localhost:5000/vnc_arabic.html
-- **Direct noVNC**: http://localhost:5000/noVNC/vnc_lite.html?host=localhost&port=5900
-- **External Access**: https://repl-url.replit.dev/vnc_arabic.html
+- **Full noVNC Interface**: http://localhost:5000/noVNC/vnc.html
+- **Lite noVNC**: http://localhost:5000/noVNC/vnc_lite.html
+- **External Access**: https://repl-url.replit.dev/vnc_enhanced_arabic.html
 
 ## External Dependencies
 

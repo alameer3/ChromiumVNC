@@ -1,1 +1,19 @@
-{}
+{
+  "host": "localhost",
+  "port": 5900,
+  "autoconnect": true,
+  "resize": "scale",
+  "view_only": false,
+  "show_dot": false,
+  "shared": true,
+  "reconnect": true,
+  "reconnect_delay": 3000,
+  "quality": 6,
+  "compression": 2,
+  "view_clip": false,
+  "logging": "info",
+  "cursor": true,
+  "local_cursor": true,
+  "touchscreen": true,
+  "keyboard": true
+}
