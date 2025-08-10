@@ -1,10 +1,12 @@
 # Overview
 
-noVNC is an HTML5 VNC client library and application that allows users to connect to VNC servers through web browsers. It provides both a JavaScript library for integration into other applications and a complete web-based VNC client with a full user interface. The project is designed to work across modern browsers including mobile platforms, offering remote desktop access without requiring additional plugins or software installation.
+Firefox VNC Remote Desktop System using noVNC. This project provides remote desktop access to a Firefox browser running on a virtual display through noVNC client. The system integrates Firefox browser with VNC server and noVNC web client for complete remote browsing capabilities.
 
 # User Preferences
 
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language (Arabic)
+- Project organization: Keep project clean and organized without adding unnecessary files
+- Browser preference: Firefox with full noVNC features and capabilities
 
 # System Architecture
 

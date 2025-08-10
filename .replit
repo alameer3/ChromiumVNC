@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["chromium", "freetype", "geckodriver", "glib", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xorgserver", "xorg.xvfb", "xorg.xwd", "xvfb-run", "zlib"]
+packages = ["chromium", "freetype", "geckodriver", "glib", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xorgserver", "xorg.xvfb", "xorg.xwd", "xvfb-run", "zlib", "firefox"]
 
 [workflows]
 runButton = "Project"
@@ -16,16 +16,19 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "VNC Final"
+args = "Firefox VNC"
 
 [[workflows.workflow]]
-name = "VNC Final"
+name = "Firefox VNC"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python final_vnc_system.py"
+args = "bash -c 'export DISPLAY=:1; Xvfb :1 -screen 0 1920x1080x24 -ac & sleep 3; x11vnc -display :1 -forever -nopw -listen 127.0.0.1 -rfbport 5900 -shared & sleep 2; firefox --new-instance \"https://www.google.com\" & sleep 3; python -m websockify --web . 6080 127.0.0.1:5900 & python3 -m http.server 5000'"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
