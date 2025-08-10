@@ -17,7 +17,7 @@ class BrowserApp {
         this.backBtn = document.getElementById('backBtn');
         this.forwardBtn = document.getElementById('forwardBtn');
         this.refreshBtn = document.getElementById('refreshBtn');
-        this.newTabBtn = document.getElementById('newTabBtn');
+        // this.newTabBtn = document.getElementById('newTabBtn'); // Removed as it doesn't exist
         this.bookmarkBtn = document.getElementById('bookmarkBtn');
         this.historyBtn = document.getElementById('historyBtn');
         this.settingsBtn = document.getElementById('settingsBtn');
@@ -26,9 +26,9 @@ class BrowserApp {
         
         // Status elements
         this.connectionStatus = document.getElementById('connectionStatus');
-        this.browserStatus = document.getElementById('browserStatus');
-        this.currentResolution = document.getElementById('currentResolution');
-        this.loadingProgress = document.getElementById('loadingProgress');
+        this.browserStatus = document.getElementById('browserStatus') || document.createElement('div'); // fallback
+        this.currentResolution = document.getElementById('currentResolution') || document.createElement('div'); // fallback
+        this.loadingProgress = document.getElementById('loadingProgress') || document.createElement('div'); // fallback
         
         // Overlays
         this.loadingOverlay = document.getElementById('loadingOverlay');
@@ -36,12 +36,12 @@ class BrowserApp {
         this.errorText = document.getElementById('errorText');
         this.retryBtn = document.getElementById('retryBtn');
         
-        // Modals
-        this.settingsModal = document.getElementById('settingsModal');
-        this.bookmarksModal = document.getElementById('bookmarksModal');
-        this.historyModal = document.getElementById('historyModal');
-        this.resolutionSelect = document.getElementById('resolutionSelect');
-        this.applyResolution = document.getElementById('applyResolution');
+        // Modals (with safe fallbacks)
+        this.settingsModal = document.getElementById('settingsModal') || document.createElement('div');
+        this.bookmarksModal = document.getElementById('bookmarksModal') || document.createElement('div');
+        this.historyModal = document.getElementById('historyModal') || document.createElement('div');
+        this.resolutionSelect = document.getElementById('resolutionSelect') || document.createElement('select');
+        this.applyResolution = document.getElementById('applyResolution') || document.createElement('button');
         
         // Canvas
         this.canvas = document.getElementById('vncCanvas');
@@ -73,28 +73,38 @@ class BrowserApp {
         
         this.goBtn.addEventListener('click', () => this.navigate());
         
-        // Settings controls
-        this.applyResolution.addEventListener('click', () => this.changeResolution());
+        // Settings controls (safe event binding)
+        if (this.applyResolution && this.applyResolution.addEventListener) {
+            this.applyResolution.addEventListener('click', () => this.changeResolution());
+        }
         
-        // Modal close buttons
-        document.getElementById('closeSettings').addEventListener('click', () => this.hideModal('settings'));
-        document.getElementById('closeBookmarks').addEventListener('click', () => this.hideModal('bookmarks'));
-        document.getElementById('closeHistory').addEventListener('click', () => this.hideModal('history'));
+        // Modal close buttons (safe event binding)
+        const closeSettings = document.getElementById('closeSettings');
+        const closeBookmarks = document.getElementById('closeBookmarks');
+        const closeHistory = document.getElementById('closeHistory');
         
-        // Close modals when clicking outside
+        if (closeSettings) closeSettings.addEventListener('click', () => this.hideModal('settings'));
+        if (closeBookmarks) closeBookmarks.addEventListener('click', () => this.hideModal('bookmarks'));
+        if (closeHistory) closeHistory.addEventListener('click', () => this.hideModal('history'));
+        
+        // Close modals when clicking outside (safe)
         [this.settingsModal, this.bookmarksModal, this.historyModal].forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
+            if (modal && modal.addEventListener) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
         });
         
-        // Retry button
-        this.retryBtn.addEventListener('click', () => {
-            this.hideError();
-            this.startVNCConnection();
-        });
+        // Retry button (safe)
+        if (this.retryBtn) {
+            this.retryBtn.addEventListener('click', () => {
+                this.hideError();
+                this.startVNCConnection();
+            });
+        }
         
         // Window resize
         window.addEventListener('resize', () => {
@@ -376,34 +386,36 @@ class BrowserApp {
     }
     
     updateBrowserStatus(status) {
-        this.browserStatus.textContent = status;
+        console.log('Updating browser status:', status);
+        if (this.browserStatus && typeof this.browserStatus.textContent !== 'undefined') {
+            this.browserStatus.textContent = status;
+        }
     }
     
     enableControls(enabled) {
-        this.backBtn.disabled = !enabled;
-        this.forwardBtn.disabled = !enabled;
-        this.refreshBtn.disabled = !enabled;
-        this.newTabBtn.disabled = !enabled;
-        this.urlInput.disabled = !enabled;
-        this.goBtn.disabled = !enabled;
+        if (this.backBtn) this.backBtn.disabled = !enabled;
+        if (this.forwardBtn) this.forwardBtn.disabled = !enabled;
+        if (this.refreshBtn) this.refreshBtn.disabled = !enabled;
+        if (this.urlInput) this.urlInput.disabled = !enabled;
+        if (this.goBtn) this.goBtn.disabled = !enabled;
     }
     
     showLoading() {
-        this.loadingOverlay.style.display = 'flex';
+        if (this.loadingOverlay) this.loadingOverlay.style.display = 'flex';
     }
     
     hideLoading() {
-        this.loadingOverlay.style.display = 'none';
+        if (this.loadingOverlay) this.loadingOverlay.style.display = 'none';
     }
     
     showError(message) {
-        this.errorText.textContent = message;
-        this.errorOverlay.style.display = 'flex';
+        if (this.errorText) this.errorText.textContent = message;
+        if (this.errorOverlay) this.errorOverlay.style.display = 'flex';
         this.hideLoading();
     }
     
     hideError() {
-        this.errorOverlay.style.display = 'none';
+        if (this.errorOverlay) this.errorOverlay.style.display = 'none';
     }
     
     // Enhanced features methods
@@ -466,6 +478,7 @@ class BrowserApp {
     
     populateBookmarks(bookmarks) {
         const container = document.getElementById('bookmarksList');
+        if (!container) return;
         container.innerHTML = '';
         
         if (bookmarks.length === 0) {
@@ -491,6 +504,7 @@ class BrowserApp {
     
     populateHistory(history) {
         const container = document.getElementById('historyList');
+        if (!container) return;
         container.innerHTML = '';
         
         if (history.length === 0) {

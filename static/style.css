@@ -92,6 +92,19 @@ body {
     justify-content: center;
 }
 
+/* Status Bar */
+.status-bar {
+    background: #f8f9fa;
+    border-top: 1px solid #ddd;
+    padding: 8px 15px;
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+}
+
 .tab-close:hover {
     background: #f0f0f0;
     color: #666;
