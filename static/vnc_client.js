@@ -75,7 +75,8 @@ class VNCClient {
             
             switch (message.type) {
                 case 'vnc_data':
-                    this.handleVNCData(message.data);
+                    console.log('Received VNC data');
+                    this.displayScreenshot(message.data);
                     break;
                 case 'screenshot':
                     this.displayScreenshot(message.data);
@@ -134,14 +135,23 @@ class VNCClient {
         }
     }
     
-    handleVNCData(base64Data) {
-        // For simplicity, we'll create a basic screen update simulation
-        // In a real implementation, this would decode VNC protocol data
+    displayScreenshot(base64Data) {
+        // Display the screenshot on canvas
         try {
-            // Check if data is valid base64 before attempting to decode
-            if (base64Data && base64Data !== 'test_screen_data') {
-                const binaryData = atob(base64Data);
-                // Process actual VNC data here
+            if (!base64Data) return;
+            
+            const img = new Image();
+            img.onload = () => {
+                // Clear canvas and draw image
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+            };
+            
+            // Set image source - handle both direct base64 and data URLs
+            if (base64Data.startsWith('data:')) {
+                img.src = base64Data;
+            } else {
+                img.src = `data:image/png;base64,${base64Data}`;
             }
             
             // Request screen capture for visual update

@@ -84,10 +84,11 @@ class VNCWebSocketHandler:
                         'success': True
                     }))
                 elif message_type == 'screen_request':
-                    # Send a test pattern or actual VNC data
+                    # Send actual VNC screenshot
+                    screen_data = await self.get_vnc_screenshot()
                     await websocket.send(json.dumps({
                         'type': 'vnc_data',
-                        'data': 'test_screen_data'
+                        'data': screen_data
                     }))
                     
             except json.JSONDecodeError as e:
@@ -133,6 +134,63 @@ class VNCWebSocketHandler:
                 'error': str(e)
             }))
     
+    async def get_vnc_screenshot(self):
+        """Capture screenshot from VNC server"""
+        try:
+            # Try multiple screenshot methods
+            import base64
+            
+            # Method 1: Try ImageMagick import
+            result = subprocess.run([
+                'import', '-display', ':1', '-window', 'root', 'png:-'
+            ], capture_output=True, timeout=5)
+            
+            if result.returncode == 0 and len(result.stdout) > 100:
+                return base64.b64encode(result.stdout).decode()
+            
+            # Method 2: Try xwd + convert
+            xwd_result = subprocess.run([
+                'xwd', '-root', '-display', ':1', '-out', '/tmp/screen.xwd'
+            ], capture_output=True, timeout=5)
+            
+            if xwd_result.returncode == 0:
+                convert_result = subprocess.run([
+                    'convert', '/tmp/screen.xwd', 'png:-'
+                ], capture_output=True, timeout=5)
+                
+                if convert_result.returncode == 0 and len(convert_result.stdout) > 100:
+                    return base64.b64encode(convert_result.stdout).decode()
+            
+            # Fallback: create a test pattern
+            return self.create_test_pattern()
+            
+        except Exception as e:
+            print(f"Error capturing screenshot: {e}")
+            return self.create_test_pattern()
+    
+    def create_test_pattern(self):
+        """Create a test pattern image using simple SVG to base64"""
+        import base64
+        try:
+            # Create simple SVG test pattern
+            svg_content = '''
+            <svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg">
+                <rect width="1280" height="720" fill="lightblue"/>
+                <text x="50" y="100" font-family="Arial" font-size="24" fill="black">VNC Browser - Connecting...</text>
+                <rect x="100" y="150" width="400" height="200" fill="none" stroke="black" stroke-width="2"/>
+                <text x="120" y="200" font-family="Arial" font-size="18" fill="black">Chromium Browser Window</text>
+                <text x="120" y="250" font-family="Arial" font-size="14" fill="gray">Waiting for VNC connection...</text>
+            </svg>
+            '''
+            # Convert SVG to base64
+            svg_b64 = base64.b64encode(svg_content.strip().encode('utf-8')).decode()
+            return f"data:image/svg+xml;base64,{svg_b64}"
+            
+        except Exception as e:
+            print(f"Error creating test pattern: {e}")
+            # Minimal PNG fallback
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
     def cleanup(self):
         """Clean up resources"""
         self.browser_manager.cleanup()

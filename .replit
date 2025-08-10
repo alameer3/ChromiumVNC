@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["chromium", "geckodriver", "glib", "nss", "x11vnc", "xorg.libxcb", "xorg.xvfb"]
+packages = ["chromium", "freetype", "geckodriver", "glib", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "zlib", "imagemagick", "xorg.xwd"]
 
 [workflows]
 runButton = "Project"
