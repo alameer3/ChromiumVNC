@@ -1,1 +1,11 @@
-{}
+{
+    "host": "localhost",
+    "port": 6080,
+    "encrypt": false,
+    "path": "",
+    "repeaterID": "",
+    "logging": "warn",
+    "reconnect": true,
+    "reconnect_delay": 5000,
+    "resize": "remote"
+}

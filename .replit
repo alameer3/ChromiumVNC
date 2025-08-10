@@ -27,9 +27,6 @@ task = "shell.exec"
 args = "bash -c 'export DISPLAY=:1; Xvfb :1 -screen 0 1920x1080x24 -ac & sleep 3; x11vnc -display :1 -forever -nopw -listen 127.0.0.1 -rfbport 5900 -shared & sleep 2; firefox --new-instance \"https://www.google.com\" & sleep 3; python -m websockify --web . 6080 127.0.0.1:5900 & python3 -m http.server 5000'"
 waitForPort = 5000
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[ports]]
 localPort = 5000
 externalPort = 80
