@@ -50,11 +50,18 @@ class FinalVNCSystem:
         """شاشة افتراضية محسنة"""
         logging.info("🖥️ تشغيل الشاشة الافتراضية...")
         
+        # Use system Xvfb with proper path detection
+        import shutil
+        xvfb_path = shutil.which("Xvfb")
+        if not xvfb_path:
+            xvfb_path = "/nix/store/sx3d9r61bi7xpg1vjiyvbay99634i282-xorg-server-21.1.18/bin/Xvfb"
+            
         cmd = [
-            "/nix/store/sx3d9r61bi7xpg1vjiyvbay99634i282-xorg-server-21.1.18/bin/Xvfb", 
+            xvfb_path, 
             ":1",
             "-screen", "0", "1920x1080x24",
-            "-ac"
+            "-ac",
+            "-nolisten", "tcp"
         ]
         
         proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -68,12 +75,18 @@ class FinalVNCSystem:
         """خادم VNC محسن"""
         logging.info("🔗 تشغيل خادم VNC...")
         
+        # Use system x11vnc with proper path detection
+        import shutil
+        x11vnc_path = shutil.which("x11vnc")
+        if not x11vnc_path:
+            x11vnc_path = "/nix/store/4rxi8q5x6yb39ykygl5ddvmlx6v26gjy-x11vnc-0.9.17/bin/x11vnc"
+            
         cmd = [
-            "x11vnc",
+            x11vnc_path,
             "-display", ":1",
             "-forever",
             "-nopw",
-            "-listen", "localhost",
+            "-listen", "127.0.0.1",
             "-rfbport", "5900",
             "-shared",
             "-bg"
@@ -87,14 +100,22 @@ class FinalVNCSystem:
         """متصفح محسن"""
         logging.info("🌐 تشغيل Chromium...")
         
+        # Use system chromium with proper path detection
+        import shutil
+        chromium_path = shutil.which("chromium")
+        if not chromium_path:
+            chromium_path = "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium"
+            
         cmd = [
-            "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium",
+            chromium_path,
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-gpu",
+            "--disable-web-security",
             "--window-size=1920,1080",
             "--start-maximized",
             "--user-data-dir=/tmp/chromium-final",
+            "--remote-debugging-port=0",
             "https://www.google.com/webhp?hl=ar"
         ]
         
@@ -109,10 +130,10 @@ class FinalVNCSystem:
         
         def run_websockify():
             cmd = [
-                "/home/runner/workspace/.pythonlibs/bin/websockify",
+                "websockify",
                 "--web", ".",  # تقديم الملفات من المجلد الحالي
                 "6080",
-                "localhost:5900"
+                "127.0.0.1:5900"
             ]
             
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
