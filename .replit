@@ -7,25 +7,6 @@ channel = "stable-25_05"
 packages = ["chromium", "freetype", "geckodriver", "glib", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "zlib", "imagemagick", "xorg.xwd"]
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Web Chromium Browser"
-
-[[workflows.workflow]]
-name = "Web Chromium Browser"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pip install websockets selenium psutil && python main.py"
-waitForPort = 5000
 
 [[ports]]
 localPort = 5000
