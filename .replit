@@ -4,17 +4,47 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["chromium", "freetype", "geckodriver", "glib", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "zlib", "imagemagick", "xorg.xwd"]
+packages = ["chromium", "freetype", "geckodriver", "glib", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "xorg.xwd", "xvfb-run", "zlib"]
 
 [workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "VNC Chromium"
+
+[[workflows.workflow]]
+name = "VNC Chromium"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python vnc_launcher.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 6080
+externalPort = 3000
+
+[[ports]]
 localPort = 8000
 externalPort = 8000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
 
 [[ports]]
 localPort = 9222
