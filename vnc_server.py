@@ -123,3 +123,68 @@ class VNCServer:
         self.cleanup_display()
         self.cleanup_vnc()
         print("VNC server cleanup completed")
+    
+    def take_screenshot(self):
+        """Take screenshot of the VNC display"""
+        try:
+            import subprocess
+            import base64
+            
+            # Use import command to capture screenshot
+            result = subprocess.run([
+                'import', '-window', 'root', '-display', self.display, 'png:-'
+            ], capture_output=True)
+            
+            if result.returncode == 0:
+                return base64.b64encode(result.stdout).decode('utf-8')
+            else:
+                print("Screenshot failed:", result.stderr.decode())
+                return None
+        except Exception as e:
+            print(f"Error taking screenshot: {e}")
+            return None
+    
+    def send_mouse_event(self, x, y, buttons):
+        """Send mouse event to VNC display"""
+        try:
+            import subprocess
+            
+            # Use xdotool to simulate mouse events
+            subprocess.run([
+                'xdotool', 'mousemove', '--window', 'root', str(x), str(y)
+            ], env={'DISPLAY': self.display})
+            
+            if buttons & 1:  # Left click
+                subprocess.run(['xdotool', 'click', '1'], env={'DISPLAY': self.display})
+            elif buttons & 4:  # Right click
+                subprocess.run(['xdotool', 'click', '3'], env={'DISPLAY': self.display})
+            elif buttons & 2:  # Middle click
+                subprocess.run(['xdotool', 'click', '2'], env={'DISPLAY': self.display})
+                
+        except Exception as e:
+            print(f"Error sending mouse event: {e}")
+    
+    def send_key_event(self, key, pressed):
+        """Send keyboard event to VNC display"""
+        try:
+            import subprocess
+            
+            if pressed:  # Only handle key press, not release
+                # Map special keys
+                key_map = {
+                    'Enter': 'Return',
+                    'Backspace': 'BackSpace',
+                    'Delete': 'Delete',
+                    'Tab': 'Tab',
+                    'Escape': 'Escape',
+                    'ArrowUp': 'Up',
+                    'ArrowDown': 'Down',
+                    'ArrowLeft': 'Left',
+                    'ArrowRight': 'Right'
+                }
+                
+                mapped_key = key_map.get(key, key)
+                subprocess.run(['xdotool', 'key', mapped_key], env={'DISPLAY': self.display})
+                
+        except Exception as e:
+            print(f"Error sending key event: {e}")
