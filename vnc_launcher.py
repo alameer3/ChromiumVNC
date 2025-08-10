@@ -27,7 +27,7 @@ class VNCLauncher:
         """بدء الشاشة الافتراضية"""
         print("🖥️  بدء الشاشة الافتراضية...")
         proc = subprocess.Popen([
-            "Xvfb", ":1", 
+            "/nix/store/sx3d9r61bi7xpg1vjiyvbay99634i282-xorg-server-21.1.18/bin/Xvfb", ":1", 
             "-screen", "0", "1280x720x24",
             "-dpi", "96", "-ac", "+extension", "GLX"
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

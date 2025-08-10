@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "python-3.11", "web"]
+modules = ["nodejs-20", "web", "python-3.11", "bash"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["chromium", "freetype", "geckodriver", "glib", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "xorg.xwd", "xvfb-run", "zlib"]
+packages = ["chromium", "freetype", "geckodriver", "glib", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nss", "openjpeg", "tcl", "tk", "x11vnc", "xorg.libxcb", "xorg.xvfb", "xorg.xwd", "xvfb-run", "zlib", "xorg.xorgserver"]
 
 [workflows]
 runButton = "Project"
@@ -26,9 +26,6 @@ author = "agent"
 task = "shell.exec"
 args = "python vnc_launcher.py"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[ports]]
 localPort = 5000
