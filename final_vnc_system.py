@@ -129,8 +129,9 @@ class FinalVNCSystem:
         logging.info("🔌 تشغيل websockify...")
         
         def run_websockify():
+            # Use Python websockify module for better compatibility
             cmd = [
-                "websockify",
+                "python", "-m", "websockify",
                 "--web", ".",  # تقديم الملفات من المجلد الحالي
                 "6080",
                 "127.0.0.1:5900"
