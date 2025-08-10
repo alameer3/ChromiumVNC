@@ -71,12 +71,21 @@ class VNCClient {
                 case 'vnc_data':
                     this.handleVNCData(message.data);
                     break;
+                case 'screenshot':
+                    this.displayScreenshot(message.data);
+                    break;
+                case 'success':
+                    console.log('Command success:', message.message);
+                    break;
                 case 'error':
                     console.error('Server error:', message.message);
                     this.onError(message.message);
                     break;
                 case 'command_result':
                     this.onCommandResult(message);
+                    break;
+                case 'status':
+                    console.log('Status update:', message.message);
                     break;
             }
         } catch (error) {
@@ -98,6 +107,22 @@ class VNCClient {
         }
     }
     
+    displayScreenshot(base64Data) {
+        try {
+            const img = new Image();
+            img.onload = () => {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw the screenshot to fill the canvas
+                this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+            };
+            img.src = 'data:image/png;base64,' + base64Data;
+        } catch (error) {
+            console.error('Error displaying screenshot:', error);
+        }
+    }
+
     requestScreenCapture() {
         // Request a screen capture from the server
         if (this.connected && this.websocket.readyState === WebSocket.OPEN) {
@@ -283,6 +308,11 @@ class VNCClient {
         
         this.ctx.font = '16px Arial';
         this.ctx.fillStyle = '#ccc';
-        this.ctx.fillText('Click to interact with the remote browser', this.canvas.width / 2, this.canvas.height / 2 + 20);
+        this.ctx.fillText('Loading browser...', this.canvas.width / 2, this.canvas.height / 2 + 20);
+        
+        // Request actual screenshot when connected
+        setTimeout(() => {
+            this.requestScreenCapture();
+        }, 1000);
     }
 }

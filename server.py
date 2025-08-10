@@ -69,6 +69,29 @@ class SimpleBrowserServer:
         finally:
             self.clients.discard(websocket)
     
+    async def send_screenshot(self, websocket):
+        """Take a screenshot and send it to the client"""
+        try:
+            if self.browser_manager and self.browser_manager.driver:
+                # Take browser screenshot
+                screenshot = self.browser_manager.driver.get_screenshot_as_base64()
+                await websocket.send(json.dumps({
+                    'type': 'screenshot',
+                    'data': screenshot,
+                    'format': 'png'
+                }))
+            else:
+                await websocket.send(json.dumps({
+                    'type': 'error', 
+                    'message': 'Browser not ready for screenshot'
+                }))
+        except Exception as e:
+            print(f"Screenshot error: {e}")
+            await websocket.send(json.dumps({
+                'type': 'error',
+                'message': f'Screenshot failed: {str(e)}'
+            }))
+
     async def process_command(self, data, websocket):
         """Process browser commands"""
         command_type = data.get('type')
@@ -83,30 +106,41 @@ class SimpleBrowserServer:
                         'type': 'success',
                         'message': f'Navigating to {url}'
                     }))
+                    # Send updated screenshot after navigation
+                    await asyncio.sleep(2)  # Wait for page to load
+                    await self.send_screenshot(websocket)
                 elif command == 'back':
                     self.browser_manager.go_back()
                     await websocket.send(json.dumps({
                         'type': 'success',
                         'message': 'Going back'
                     }))
+                    await asyncio.sleep(1)
+                    await self.send_screenshot(websocket)
                 elif command == 'forward':
                     self.browser_manager.go_forward()
                     await websocket.send(json.dumps({
                         'type': 'success',
                         'message': 'Going forward'
                     }))
+                    await asyncio.sleep(1)
+                    await self.send_screenshot(websocket)
                 elif command == 'refresh':
                     self.browser_manager.refresh()
                     await websocket.send(json.dumps({
                         'type': 'success',
                         'message': 'Refreshing page'
                     }))
+                    await asyncio.sleep(2)
+                    await self.send_screenshot(websocket)
                 elif command == 'new_tab':
                     self.browser_manager.new_tab()
                     await websocket.send(json.dumps({
                         'type': 'success',
                         'message': 'Opening new tab'
                     }))
+                    await asyncio.sleep(1)
+                    await self.send_screenshot(websocket)
                 else:
                     await websocket.send(json.dumps({
                         'type': 'error',
@@ -123,6 +157,9 @@ class SimpleBrowserServer:
                 'type': 'pong',
                 'message': 'Server is alive'
             }))
+        elif command_type == 'screen_request':
+            # Take a screenshot and send it
+            await self.send_screenshot(websocket)
     
     def cleanup(self):
         """Clean up all services"""
