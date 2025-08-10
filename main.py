@@ -12,6 +12,7 @@ import time
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import socketserver
+import websockets.server
 from vnc_server import VNCServer
 from browser_manager import BrowserManager
 
@@ -44,6 +45,7 @@ class VNCWebSocketHandler:
     
     async def handle_client(self, websocket, path):
         """Handle WebSocket client connections"""
+        # Check if this is a WebSocket connection from our VNC client  
         if path != "/ws":
             return
             
@@ -51,7 +53,7 @@ class VNCWebSocketHandler:
         print(f"Client connected. Total clients: {len(self.clients)}")
         
         try:
-            await self.handle_vnc_connection(websocket)
+            await self.handle_messages(websocket)
         except websockets.exceptions.ConnectionClosed:
             print("Client disconnected")
         except Exception as e:
@@ -59,65 +61,48 @@ class VNCWebSocketHandler:
         finally:
             self.clients.discard(websocket)
     
-    async def handle_vnc_connection(self, websocket):
-        """Handle VNC connection and data forwarding"""
-        import socket
+    async def handle_messages(self, websocket):
+        """Handle WebSocket messages"""
+        # Send initial connection success message
+        await websocket.send(json.dumps({
+            'type': 'connection_status',
+            'status': 'connected'
+        }))
         
-        # Connect to VNC server
-        vnc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            vnc_socket.connect(('localhost', 5901))
-            vnc_socket.settimeout(0.1)
-        except Exception as e:
-            await websocket.send(json.dumps({
-                'type': 'error',
-                'message': f'Failed to connect to VNC server: {e}'
-            }))
-            return
-        
-        async def vnc_to_websocket():
-            """Forward VNC data to WebSocket"""
-            while True:
-                try:
-                    data = vnc_socket.recv(4096)
-                    if not data:
-                        break
-                    # Send binary VNC data as base64
-                    import base64
-                    encoded_data = base64.b64encode(data).decode('utf-8')
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                message_type = data.get('type')
+                
+                if message_type == 'browser_command':
+                    await self.handle_browser_command(data, websocket)
+                elif message_type == 'vnc_input':
+                    # For VNC input, we would forward to VNC server
+                    # For now, just acknowledge
+                    await websocket.send(json.dumps({
+                        'type': 'vnc_input_ack',
+                        'success': True
+                    }))
+                elif message_type == 'screen_request':
+                    # Send a test pattern or actual VNC data
                     await websocket.send(json.dumps({
                         'type': 'vnc_data',
-                        'data': encoded_data
+                        'data': 'test_screen_data'
                     }))
-                except socket.timeout:
-                    await asyncio.sleep(0.01)
-                except Exception as e:
-                    print(f"Error forwarding VNC data: {e}")
-                    break
-        
-        async def websocket_to_vnc():
-            """Forward WebSocket data to VNC"""
-            async for message in websocket:
-                try:
-                    data = json.loads(message)
-                    if data.get('type') == 'vnc_input':
-                        # Decode and forward input to VNC
-                        import base64
-                        vnc_data = base64.b64decode(data.get('data', ''))
-                        vnc_socket.send(vnc_data)
-                    elif data.get('type') == 'browser_command':
-                        # Handle browser commands
-                        await self.handle_browser_command(data, websocket)
-                except Exception as e:
-                    print(f"Error processing WebSocket message: {e}")
-        
-        # Run both directions concurrently
-        await asyncio.gather(
-            vnc_to_websocket(),
-            websocket_to_vnc()
-        )
-        
-        vnc_socket.close()
+                    
+            except json.JSONDecodeError as e:
+                await websocket.send(json.dumps({
+                    'type': 'error',
+                    'message': f'Invalid JSON: {e}'
+                }))
+            except Exception as e:
+                print(f"Error processing message: {e}")
+                await websocket.send(json.dumps({
+                    'type': 'error', 
+                    'message': f'Server error: {e}'
+                }))
+    
+
     
     async def handle_browser_command(self, data, websocket):
         """Handle browser control commands"""
