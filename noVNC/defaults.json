@@ -1,10 +1,10 @@
 {
-    "host": "localhost",
+    "host": "127.0.0.1",
     "port": 6080,
     "encrypt": false,
     "path": "",
     "repeaterID": "",
-    "logging": "warn",
+    "logging": "debug",
     "reconnect": true,
     "reconnect_delay": 5000,
     "resize": "remote"
